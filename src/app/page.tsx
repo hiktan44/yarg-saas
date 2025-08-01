@@ -193,13 +193,7 @@ export default function HomePage() {
                         <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                           {institution.name}
                         </h3>
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                          institution.status === 'Aktif' ? 'bg-green-100 text-green-700' :
-                          institution.status === 'Entegrasyon' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                          {institution.status}
-                        </span>
+
                       </div>
                     </div>
                   </div>
@@ -301,9 +295,9 @@ export default function HomePage() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600 mb-2">
-                  {INSTITUTIONS.filter(inst => inst.status === 'Aktif').length}
+                  {INSTITUTIONS.length}
                 </div>
-                <div className="text-gray-600">Aktif Kurum</div>
+                <div className="text-gray-600">Toplam Kurum</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-600 mb-2">
