@@ -24,14 +24,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Initial session check
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Auth session error:', error);
-      } else {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          // Suppress normal 401 unauthorized errors for non-authenticated users
+          if (error.status !== 401) {
+            console.error('Auth session error:', error);
+          }
+        }
         setSession(session);
         setUser(session?.user ?? null);
+      } catch (error) {
+        // Suppress authentication errors for better UX
+        console.debug('Auth check (normal for logged out users):', error);
+        setSession(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getSession();
