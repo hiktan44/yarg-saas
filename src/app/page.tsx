@@ -273,17 +273,65 @@ export default function HomePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Destek</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Yardım Merkezi</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">İletişim</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Dokümantasyon</a></li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    Yardım Merkezi
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    İletişim
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    Dokümantasyon
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Yasal</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Gizlilik Politikası</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Kullanım Şartları</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">KVKK</a></li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    Gizlilik Politikası
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    Kullanım Şartları
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    className="hover:text-white transition-colors"
+                    suppressHydrationWarning
+                  >
+                    KVKK
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
