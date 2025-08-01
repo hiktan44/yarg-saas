@@ -4,25 +4,92 @@ import { motion } from "framer-motion";
 import { Building2, Calendar, FileText, ExternalLink } from "lucide-react";
 import Button from "../ui/Button";
 
-interface InstitutionCardProps {
+interface Institution {
+  id: string;
   name: string;
   description: string;
-  icon: React.ReactNode;
+  icon: string;
   totalDocuments: number;
   lastUpdate: string;
+  status: string;
+}
+
+interface InstitutionCardProps {
+  institution?: Institution;
+  name?: string;
+  description?: string;
+  icon?: React.ReactNode;
+  totalDocuments?: number;
+  lastUpdate?: string;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
+  onToggle?: () => void;
+  variant?: 'default' | 'compact';
 }
 
 export default function InstitutionCard({
+  institution,
   name,
   description,
   icon,
   totalDocuments,
   lastUpdate,
   isSelected,
-  onSelect
+  onSelect,
+  onToggle,
+  variant = 'default'
 }: InstitutionCardProps) {
+  // Use institution object props if provided, otherwise use individual props
+  const displayName = institution?.name || name || '';
+  const displayDescription = institution?.description || description || '';
+  const displayIcon = institution?.icon || icon;
+  const displayTotalDocuments = institution?.totalDocuments || totalDocuments || 0;
+  const displayLastUpdate = institution?.lastUpdate || lastUpdate || '';
+  
+  const handleClick = () => {
+    if (onToggle) {
+      onToggle();
+    } else if (onSelect) {
+      onSelect();
+    }
+  };
+  // Compact variant için farklı stil
+  if (variant === 'compact') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer ${
+          isSelected
+            ? 'border-blue-500 bg-blue-50 text-blue-900'
+            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        }`}
+        onClick={handleClick}
+      >
+        <div className="flex-shrink-0">
+          <span className="text-lg">{displayIcon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium truncate ${
+            isSelected ? 'text-blue-900' : 'text-gray-900'
+          }`}>
+            {displayName}
+          </p>
+          <p className={`text-xs truncate ${
+            isSelected ? 'text-blue-700' : 'text-gray-500'
+          }`}>
+            {displayTotalDocuments.toLocaleString()} döküman
+          </p>
+        </div>
+        {isSelected && (
+          <div className="flex-shrink-0">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -33,7 +100,7 @@ export default function InstitutionCard({
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
-      onClick={onSelect}
+      onClick={handleClick}
     >
       {/* Seçim Göstergesi */}
       {isSelected && (
@@ -46,17 +113,17 @@ export default function InstitutionCard({
           ? 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-400'
           : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
       }`}>
-        {icon}
+        <span className="text-2xl">{displayIcon}</span>
       </div>
 
       {/* Kurum Bilgileri */}
       <div className="space-y-3">
         <div>
           <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-            {name}
+            {displayName}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {description}
+            {displayDescription}
           </p>
         </div>
 
@@ -64,11 +131,11 @@ export default function InstitutionCard({
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
             <FileText className="w-4 h-4" />
-            <span>{totalDocuments.toLocaleString('tr-TR')} belge</span>
+            <span>{displayTotalDocuments.toLocaleString('tr-TR')} belge</span>
           </div>
           <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
             <Calendar className="w-4 h-4" />
-            <span>{lastUpdate}</span>
+            <span>{displayLastUpdate}</span>
           </div>
         </div>
 
@@ -79,7 +146,7 @@ export default function InstitutionCard({
           className="w-full"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
-            onSelect();
+            handleClick();
           }}
         >
           {isSelected ? 'Seçildi' : 'Seç'}
