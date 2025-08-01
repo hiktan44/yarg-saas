@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Shield, Users, FileText, BarChart3, Clock, CheckCircle } from 'lucide-react';
+import { ArrowRight, Shield, Users, FileText, BarChart3, Clock, CheckCircle, Building2, Calendar, Database, Globe, Zap } from 'lucide-react';
+import { INSTITUTIONS } from '@/lib/constants';
 
 const features = [
   {
@@ -37,28 +38,7 @@ const features = [
   }
 ];
 
-const institutions = [
-  {
-    name: 'Adalet Bakanlığı',
-    description: 'Merkezi koordinasyon ve politika belirleme',
-    status: 'Aktif'
-  },
-  {
-    name: 'Yargıtay',
-    description: 'Temyiz mercii veri entegrasyonu',
-    status: 'Entegrasyon'
-  },
-  {
-    name: 'Danıştay',
-    description: 'İdari yargı veri yönetimi',
-    status: 'Planlanan'
-  },
-  {
-    name: 'Anayasa Mahkemesi',
-    description: 'Anayasal denetim süreçleri',
-    status: 'Planlanan'
-  }
-];
+// Kurumlar artık constants'tan geliyor (INSTITUTIONS array)
 
 export default function HomePage() {
   return (
@@ -181,33 +161,158 @@ export default function HomePage() {
       <section id="institutions" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Entegre Kurumlar</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Türkiye'nin tüm yargı kurumları tek platform altında</p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Entegre Kurumlar
+              <span className="ml-3 text-2xl">{INSTITUTIONS.length}</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Türkiye'nin en önemli 11 yargı kurumundan 
+              <span className="font-semibold text-blue-600 mx-2">
+                {INSTITUTIONS.reduce((total, inst) => total + inst.totalDocuments, 0).toLocaleString('tr-TR')}+
+              </span>
+              belge ve karar tek platformda
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {institutions.map((institution, index) => (
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {INSTITUTIONS.map((institution, index) => (
               <motion.div
-                key={institution.name}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                key={institution.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-blue-200"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">{institution.name}</h3>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    institution.status === 'Aktif' ? 'bg-green-100 text-green-800' :
-                    institution.status === 'Entegrasyon' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {institution.status}
-                  </span>
+                {/* Header */}
+                <div className="p-6 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">{institution.icon}</div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {institution.name}
+                        </h3>
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                          institution.status === 'Aktif' ? 'bg-green-100 text-green-700' :
+                          institution.status === 'Entegrasyon' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {institution.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    {institution.description}
+                  </p>
                 </div>
-                <p className="text-gray-600">{institution.description}</p>
+
+                {/* Stats */}
+                <div className="px-6 pb-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center justify-center mb-1">
+                        <Database className="w-4 h-4 text-blue-600 mr-1" />
+                        <span className="text-xs text-blue-600 font-medium">Belge</span>
+                      </div>
+                      <div className="text-lg font-bold text-blue-700">
+                        {institution.totalDocuments.toLocaleString('tr-TR')}
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center justify-center mb-1">
+                        <Calendar className="w-4 h-4 text-green-600 mr-1" />
+                        <span className="text-xs text-green-600 font-medium">Güncelleme</span>
+                      </div>
+                      <div className="text-sm font-bold text-green-700">
+                        {new Date(institution.lastUpdate).toLocaleDateString('tr-TR')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* API Type & Coverage */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <span className="flex items-center">
+                      <Zap className="w-3 h-3 mr-1" />
+                      {institution.apiType}
+                    </span>
+                    <span className="flex items-center">
+                      <Globe className="w-3 h-3 mr-1" />
+                      {institution.coverage}
+                    </span>
+                  </div>
+
+                  {/* Special Features */}
+                  <div className="mb-4">
+                    <h4 className="text-xs font-semibold text-gray-700 mb-2">Özel Özellikler:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {institution.specialFeatures.slice(0, 2).map((feature, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium"
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                      {institution.specialFeatures.length > 2 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs">
+                          +{institution.specialFeatures.length - 2} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Departments Count */}
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Building2 className="w-3 h-3 mr-1" />
+                    <span>{institution.departments.length} Daire/Departman</span>
+                  </div>
+                </div>
+
+                {/* Hover Effect Bottom Bar */}
+                <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
               </motion.div>
             ))}
           </div>
+
+          {/* Summary Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            viewport={{ once: true }}
+            className="mt-16 bg-white rounded-2xl shadow-lg p-8"
+          >
+            <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Platform Geneli İstatistikler</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {INSTITUTIONS.length}
+                </div>
+                <div className="text-gray-600">Entegre Kurum</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {INSTITUTIONS.reduce((total, inst) => total + inst.totalDocuments, 0).toLocaleString('tr-TR')}+
+                </div>
+                <div className="text-gray-600">Toplam Belge</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {INSTITUTIONS.filter(inst => inst.status === 'Aktif').length}
+                </div>
+                <div className="text-gray-600">Aktif Kurum</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-orange-600 mb-2">
+                  {new Set(INSTITUTIONS.flatMap(inst => inst.specialFeatures)).size}+
+                </div>
+                <div className="text-gray-600">Özel Özellik</div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
