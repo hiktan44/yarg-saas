@@ -55,7 +55,10 @@ export default function RegisterPage() {
     try {
       await signUp(formData.email, formData.password, formData.name);
       toast.success('Hesabınız oluşturuldu! E-postanızı kontrol edin ve doğrulama linkine tıklayın.');
-      toast.info('Doğrulama sonrası giriş yapabilirsiniz.');
+      toast('Doğrulama sonrası giriş yapabilirsiniz.', { 
+        icon: 'ℹ️', 
+        duration: 4000 
+      });
       router.push('/auth/login');
     } catch (error: any) {
       toast.error('Kayıt başarısız: ' + (error.message || 'Bilinmeyen hata'));
