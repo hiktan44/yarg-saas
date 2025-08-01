@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import SearchInterface from '@/components/search/SearchInterface';
 import InstitutionCard from '@/components/search/InstitutionCard';
 import SearchFilters, { SearchFilters as SearchFiltersType } from '@/components/search/SearchFilters';
@@ -12,6 +12,7 @@ import Button from '@/components/ui/Button';
 import { useSearch } from '@/hooks/useSearch';
 import { useAI } from '@/hooks/useAI';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { INSTITUTIONS } from '@/lib/constants';
 
 export default function DashboardPage() {
   const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>([]);
@@ -40,15 +41,7 @@ export default function DashboardPage() {
     error: aiError
   } = useAI();
 
-  // Mock kurumlar (gerçek API'den gelinceye kadar)
-  const institutions = [
-    { id: 'yargitay', name: 'Yargıtay', description: 'Temyiz mahkemesi kararları', totalDocuments: 125000, lastUpdate: '2024-01-15' },
-    { id: 'danistay', name: 'Danıştay', description: 'İdari yargı kararları', totalDocuments: 89000, lastUpdate: '2024-01-14' },
-    { id: 'emsal', name: 'Emsal (UYAP)', description: 'Emsal karar sistemi', totalDocuments: 256000, lastUpdate: '2024-01-16' },
-    { id: 'bedesten', name: 'Bedesten', description: 'Adalet Bakanlığı kararları', totalDocuments: 67000, lastUpdate: '2024-01-13' },
-    { id: 'kvkk', name: 'KVKK', description: 'Veri koruma kararları', totalDocuments: 1200, lastUpdate: '2024-01-16' },
-    { id: 'bddk', name: 'BDDK', description: 'Bankacılık kararları', totalDocuments: 5600, lastUpdate: '2024-01-12' }
-  ];
+
 
   const handleInstitutionSelect = (institutionId: string) => {
     setSelectedInstitutions(prev => 
@@ -59,9 +52,9 @@ export default function DashboardPage() {
   };
 
   const handleSearch = (query: string) => {
-    const activeInstitutions = selectedInstitutions.length > 0 
-      ? selectedInstitutions 
-      : institutions.map(i => i.id);
+        const activeInstitutions = selectedInstitutions.length > 0
+      ? selectedInstitutions
+      : INSTITUTIONS.map(i => i.id);
     
     search(query, activeInstitutions, searchFilters);
   };
@@ -158,12 +151,12 @@ export default function DashboardPage() {
               Arama Yapılacak Kurumlar
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {institutions.map((institution) => (
+              {INSTITUTIONS.map((institution) => (
                 <InstitutionCard
                   key={institution.id}
                   name={institution.name}
                   description={institution.description}
-                  icon={<Building2 className="w-6 h-6" />}
+                  icon={institution.icon}
                   totalDocuments={institution.totalDocuments}
                   lastUpdate={institution.lastUpdate}
                   isSelected={selectedInstitutions.includes(institution.id)}
@@ -183,7 +176,7 @@ export default function DashboardPage() {
               <div className="mt-6">
                 <SearchFilters
                   onFiltersChange={setSearchFilters}
-                  availableInstitutions={institutions.map(i => i.name)}
+                  availableInstitutions={INSTITUTIONS.map(i => i.name)}
                   availableDepartments={['1. Daire', '2. Daire', '3. Daire', 'Genel Kurul']}
                 />
               </div>
@@ -223,7 +216,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">Seçilen Kurum:</span>
                       <span className="font-medium text-gray-900 dark:text-white">
-                        {selectedInstitutions.length || institutions.length}
+                        {selectedInstitutions.length || INSTITUTIONS.length}
                       </span>
                     </div>
                   </div>
