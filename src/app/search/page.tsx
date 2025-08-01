@@ -23,28 +23,32 @@ export default function SearchPage() {
   });
 
   const {
-    query,
-    setQuery,
-    searchResults,
     isLoading,
-    totalResults,
+    results: searchResults,
+    totalCount: totalResults,
     searchTime,
     hasMore,
     currentPage,
-    performSearch,
+    search: performSearch,
     loadMore,
     clearResults
   } = useSearch();
 
+  // Local state for query
+  const [query, setQuery] = useState('');
+
   const handleSearch = async (searchQuery: string) => {
-    await performSearch(searchQuery, {
-      institutions: selectedInstitutions.length > 0 ? selectedInstitutions : INSTITUTIONS.map(i => i.id),
-      filters: {
+    setQuery(searchQuery);
+    const institutions = selectedInstitutions.length > 0 ? selectedInstitutions : INSTITUTIONS.map(i => i.id);
+    await performSearch(
+      searchQuery,
+      institutions,
+      {
         timeRange: quickFilters.timeRange,
         resultType: quickFilters.resultType,
         sortBy: quickFilters.sortBy
       }
-    });
+    );
   };
 
   const handleInstitutionToggle = (institutionId: string) => {
@@ -108,7 +112,7 @@ export default function SearchPage() {
             </motion.div>
 
             {/* Quick Stats */}
-            {searchResults.length > 0 && (
+            {searchResults && searchResults.length > 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -214,7 +218,7 @@ export default function SearchPage() {
 
             {/* Main Content - Search Results */}
             <div className="lg:col-span-3">
-              {searchResults.length === 0 && !isLoading && query.trim() === '' && (
+              {(!searchResults || searchResults.length === 0) && !isLoading && query.trim() === '' && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -247,7 +251,7 @@ export default function SearchPage() {
                 </motion.div>
               )}
 
-              {(searchResults.length > 0 || isLoading) && (
+              {((searchResults && searchResults.length > 0) || isLoading) && (
                 <SearchResults
                   results={searchResults}
                   isLoading={isLoading}

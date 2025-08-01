@@ -40,8 +40,14 @@ export interface SearchResult {
 interface SearchResultsProps {
   results: SearchResult[];
   isLoading: boolean;
-  onDocumentSelect: (document: SearchResult) => void;
-  onBookmarkToggle: (documentId: string) => void;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  onClearResults?: () => void;
+  totalResults?: number;
+  searchTime?: number;
+  currentPage?: number;
+  onDocumentSelect?: (document: SearchResult) => void;
+  onBookmarkToggle?: (documentId: string) => void;
 }
 
 const institutionIcons: Record<string, React.ReactNode> = {
@@ -67,6 +73,12 @@ const institutionColors: Record<string, string> = {
 export default function SearchResults({
   results,
   isLoading,
+  hasMore,
+  onLoadMore,
+  onClearResults,
+  totalResults = 0,
+  searchTime = 0,
+  currentPage = 1,
   onDocumentSelect,
   onBookmarkToggle
 }: SearchResultsProps) {
