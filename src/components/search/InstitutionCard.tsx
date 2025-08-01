@@ -66,9 +66,27 @@ export default function InstitutionCard({
         }`}
         onClick={handleClick}
       >
+        {/* ✅ Her kurum için Checkbox */}
+        <div className="flex-shrink-0">
+          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+            isSelected 
+              ? 'border-blue-500 bg-blue-500' 
+              : 'border-gray-300 bg-white hover:border-blue-400'
+          }`}>
+            {isSelected && (
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+        </div>
+        
+        {/* Kurum İkonu */}
         <div className="flex-shrink-0">
           <span className="text-lg">{displayIcon}</span>
         </div>
+        
+        {/* Kurum Bilgileri */}
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium truncate ${
             isSelected ? 'text-blue-900' : 'text-gray-900'
@@ -81,11 +99,6 @@ export default function InstitutionCard({
             {displayTotalDocuments.toLocaleString()} döküman
           </p>
         </div>
-        {isSelected && (
-          <div className="flex-shrink-0">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          </div>
-        )}
       </motion.div>
     );
   }

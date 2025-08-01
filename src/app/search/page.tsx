@@ -15,7 +15,9 @@ import { INSTITUTIONS } from '@/lib/constants';
 
 export default function SearchPage() {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>([]);
+  const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>(
+    INSTITUTIONS.map(i => i.id) // 🔥 Varsayılan olarak tüm kurumlar seçili
+  );
   const [quickFilters, setQuickFilters] = useState({
     timeRange: 'all',
     resultType: 'all',
