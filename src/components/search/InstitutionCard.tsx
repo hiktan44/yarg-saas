@@ -115,13 +115,23 @@ export default function InstitutionCard({
       }`}
       onClick={handleClick}
     >
-      {/* Seçim Göstergesi */}
-      {isSelected && (
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900" />
-      )}
+      {/* ✅ Büyük Checkbox - Sol Üst Köşe */}
+      <div className="absolute top-4 left-4">
+        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+          isSelected 
+            ? 'border-blue-500 bg-blue-500' 
+            : 'border-gray-300 bg-white hover:border-blue-400'
+        }`}>
+          {isSelected && (
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+      </div>
 
-      {/* Kurum İkonu */}
-      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+      {/* Kurum İkonu - Checkbox'tan sonra ortalanmış */}
+      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto mt-2 ${
         isSelected 
           ? 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-400'
           : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'

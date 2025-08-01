@@ -7,13 +7,13 @@ import { AuthProvider } from '@/contexts/AuthContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Yargı SaaS - Türk Hukuk Sistemine Kapsamlı Çözüm',
-  description: 'Türkiye\'nin 11 farklı hukuk kurumu için geliştirilmiş kapsamlı SaaS çözümü. Hukuk, kararlar ve mevzuat arama, AI destekli analiz.',
-  keywords: 'yargı, hukuk, saas, türkiye, mahkeme, karar, mevzuat, ai, analiz',
-  authors: [{ name: 'Yargı Saas Team' }],
+  title: 'Yargi SaaS - Turk Hukuk Sistemine Kapsamli Cozum',
+  description: 'Turkiye nin 11 farkli hukuk kurumu icin gelistirilmis kapsamli SaaS cozumu. Hukuk, kararlar ve mevzuat arama, AI destekli analiz.',
+  keywords: 'yargi, hukuk, saas, turkiye, mahkeme, karar, mevzuat, ai, analiz',
+  authors: [{ name: 'Yargi SaaS Team' }],
   openGraph: {
-    title: 'Yargı SaaS - Türk Hukuk Sistemine Kapsamlı Çözüm',
-    description: 'Türkiye\'nin en kapsamlı hukuk veri tabanı ve analiz platformu',
+    title: 'Yargi SaaS - Turk Hukuk Sistemine Kapsamli Cozum',
+    description: 'Turkiye nin en kapsamli hukuk veri tabani ve analiz platformu',
     type: 'website',
     locale: 'tr_TR',
   },
