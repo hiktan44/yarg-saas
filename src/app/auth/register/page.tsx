@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name.trim() || !formData.email.trim() || !formData.password) {
@@ -43,14 +45,24 @@ export default function RegisterPage() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast.error('Şifre en az 6 karakter olmalıdır');
+      return;
+    }
+
     setLoading(true);
 
-    // Mock registration - replace with real Supabase integration later
-    setTimeout(() => {
+    try {
+      await signUp(formData.email, formData.password, formData.name);
+      toast.success('Hesabınız oluşturuldu! E-postanızı kontrol edin ve doğrulama linkine tıklayın.');
+      toast.info('Doğrulama sonrası giriş yapabilirsiniz.');
+      router.push('/auth/login');
+    } catch (error: any) {
+      toast.error('Kayıt başarısız: ' + (error.message || 'Bilinmeyen hata'));
+      console.error('Registration error:', error);
+    } finally {
       setLoading(false);
-      toast.success('Kayıt başarılı! Dashboard\'a yönlendiriliyorsunuz...');
-      router.push('/dashboard');
-    }, 1000);
+    }
   };
 
   return (

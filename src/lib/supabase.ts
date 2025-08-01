@@ -1,9 +1,11 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+// Mock Supabase client for development (replace with real client when you have keys)
+export { supabase } from './supabase-mock';
+
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 
-// Supabase istemcisini oluştur
-export const supabase = createClientComponentClient();
+// Import the mock supabase for internal use in this file
+import { supabase as mockSupabase } from './supabase-mock';
 
 // Custom hook - Supabase kimlik doğrulama
 export function useSupabase() {
@@ -13,15 +15,15 @@ export function useSupabase() {
   useEffect(() => {
     // Mevcut kullanıcıyı al
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { session } } = await mockSupabase.auth.getSession();
+      setUser(session?.user || null);
       setLoading(false);
     };
 
     getUser();
 
     // Auth değişikliklerini dinle
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = mockSupabase.auth.onAuthStateChange(
       async (_event: any, session: any) => {
         setUser(session?.user ?? null);
         setLoading(false);
@@ -32,7 +34,7 @@ export function useSupabase() {
   }, []);
 
   return {
-    supabase,
+    supabase: mockSupabase,
     user,
     loading
   };
