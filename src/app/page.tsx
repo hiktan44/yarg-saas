@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Shield, Users, FileText, BarChart3, Clock, CheckCircle, Building2, Calendar, Database, Globe, Zap } from 'lucide-react';
+import { ArrowRight, Shield, Users, FileText, BarChart3, Clock, CheckCircle, Building2, Calendar, Database } from 'lucide-react';
 import { INSTITUTIONS } from '@/lib/constants';
 
 const features = [
@@ -226,17 +226,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* API Type & Coverage */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span className="flex items-center">
-                      <Zap className="w-3 h-3 mr-1" />
-                      {institution.apiType}
-                    </span>
-                    <span className="flex items-center">
-                      <Globe className="w-3 h-3 mr-1" />
-                      {institution.coverage}
-                    </span>
-                  </div>
+
 
                   {/* Special Features */}
                   <div className="mb-4">
