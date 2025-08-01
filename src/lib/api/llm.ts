@@ -128,7 +128,7 @@ export async function callAnthropic(
 // Google Gemini API çağrısı
 export async function callGoogle(
   messages: LLMMessage[],
-  model = 'gemini-pro'
+  model = 'gemini-1.5-flash'
 ): Promise<LLMResponse> {
   if (!googleAI) {
     throw new Error('Google AI API key not configured');

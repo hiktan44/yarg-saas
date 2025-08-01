@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Yargı MCP API'leri için temel konfigürasyon
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+// Next.js API Routes için temel konfigürasyon
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3010';
 
 export interface InstitutionInfo {
   id: string;
