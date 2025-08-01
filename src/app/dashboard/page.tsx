@@ -32,10 +32,12 @@ export default function DashboardPage() {
   const { search, results, isLoading, totalCount, searchTime } = useSearch();
   const { 
     askQuestion, 
-    analyzeDocumentAI, 
+    analyzeDocument, 
     messages: aiHookMessages, 
     isLoading: aiLoading,
-    clearConversation 
+    clearConversation,
+    changeProvider,
+    error: aiError
   } = useAI();
 
   // Mock kurumlar (gerçek API'den gelinceye kadar)
@@ -91,31 +93,43 @@ export default function DashboardPage() {
     clearConversation();
   };
 
+  // 🤖 REAL AI Integration - Question Handling
   const handleAIMessage = async (message: string, provider: string) => {
     if (!selectedDocument) return;
 
-    // Mock AI message oluştur
-    const userMessage: AIMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: message,
-      timestamp: new Date()
-    };
+    try {
+      await askQuestion(
+        {
+          title: selectedDocument.title,
+          content: selectedDocument.content || selectedDocument.summary,
+          institution: selectedDocument.institution
+        },
+        message,
+        provider as 'openai' | 'anthropic' | 'google'
+      );
+    } catch (error) {
+      console.error('AI Question Error:', error);
+      // Error handling - useAI hook'u hata durumunu manage ediyor
+    }
+  };
 
-    const assistantMessage: AIMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: `Bu ${selectedDocument.institution} belgesine göre: ${message} sorunuza yanıt vermek için dokümanı analiz ediyorum. Bu örnek bir AI yanıtıdır.`,
-      timestamp: new Date(),
-      llmProvider: provider as any,
-      metadata: {
-        documentTitle: selectedDocument.title,
-        processingTime: 1500,
-        tokenCount: 150
-      }
-    };
+  // 📄 Real AI Document Analysis
+  const handleQuickAnalysis = async (analysisType: 'summary' | 'legal_analysis' | 'key_points' | 'similar_cases') => {
+    if (!selectedDocument) return;
 
-    setAiMessages(prev => [...prev, userMessage, assistantMessage]);
+    try {
+      await analyzeDocument(
+        {
+          title: selectedDocument.title,
+          content: selectedDocument.content || selectedDocument.summary,
+          institution: selectedDocument.institution,
+          date: selectedDocument.date
+        },
+        analysisType
+      );
+    } catch (error) {
+      console.error('AI Analysis Error:', error);
+    }
   };
 
   const handleBookmarkToggle = async (documentId: string) => {
@@ -251,19 +265,65 @@ export default function DashboardPage() {
       />
 
       {/* AI Paneli */}
+      {/* 🤖 Real AI Panel */}
       <AIPanel
         isOpen={isAIPanelOpen}
         onClose={() => setIsAIPanelOpen(false)}
         selectedDocument={selectedDocument ? {
           id: selectedDocument.id,
           title: selectedDocument.title,
-          content: selectedDocument.content,
+          content: selectedDocument.content || selectedDocument.summary,
           institution: selectedDocument.institution
         } : undefined}
-        messages={aiMessages}
+        messages={aiHookMessages} // Real AI messages from hook
         onSendMessage={handleAIMessage}
         isLoading={aiLoading}
       />
+
+      {/* Quick Analysis Buttons */}
+      {selectedDocument && isAIPanelOpen && (
+        <div className="fixed bottom-20 right-[33rem] z-40">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Hızlı Analiz
+            </p>
+            <div className="flex flex-col gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleQuickAnalysis('summary')}
+                disabled={aiLoading}
+              >
+                📄 Özet
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleQuickAnalysis('legal_analysis')}
+                disabled={aiLoading}
+              >
+                ⚖️ Hukuki Analiz
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleQuickAnalysis('key_points')}
+                disabled={aiLoading}
+              >
+                🔑 Ana Noktalar
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleQuickAnalysis('similar_cases')}
+                disabled={aiLoading}
+              >
+                📚 Benzer Davalar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </ProtectedRoute>
   );

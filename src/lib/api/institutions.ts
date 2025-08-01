@@ -95,55 +95,295 @@ export const getDocumentDetails = async (documentId: string): Promise<DocumentRe
   }
 };
 
-// Spesifik kurum API'leri
+// 🔥 REAL API IMPLEMENTATIONS
+// Rate limiting store
+const rateLimits = new Map<string, number[]>();
+
+// Rate limiter function
+function checkRateLimit(institutionId: string, limit: number = 30): boolean {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute window
+  
+  if (!rateLimits.has(institutionId)) {
+    rateLimits.set(institutionId, []);
+  }
+  
+  const requests = rateLimits.get(institutionId)!;
+  const validRequests = requests.filter(time => now - time < windowMs);
+  
+  if (validRequests.length >= limit) {
+    return false; // Rate limit exceeded
+  }
+  
+  validRequests.push(now);
+  rateLimits.set(institutionId, validRequests);
+  return true;
+}
+
+// 🏛️ Yargıtay Real API
 export const YargitayAPI = {
   search: async (query: string, filters?: any) => {
-    const response = await axios.post('https://karararama.yargitay.gov.tr/aramadetaylist', {
-      arananKelime: query,
-      ...filters
-    });
-    return response.data;
+    if (!checkRateLimit('yargitay', 30)) {
+      throw new Error('Yargıtay API rate limit exceeded');
+    }
+
+    try {
+      const searchParams = {
+        arananKelime: query,
+        baslangicTarihi: filters?.startDate || '',
+        bitisTarihi: filters?.endDate || '',
+        daire: filters?.department || '',
+        sayfa: filters?.page || 1,
+        kayitSayisi: filters?.limit || 20
+      };
+
+      const response = await axios.post('https://karararama.yargitay.gov.tr/api/arama', searchParams, {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'YargiSys-Search/1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+
+      return {
+        success: true,
+        data: response.data?.results || [],
+        totalCount: response.data?.totalCount || 0,
+        executionTime: response.headers['x-response-time'] || 0
+      };
+    } catch (error: any) {
+      console.error('Yargıtay API Error:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
   },
   
   getDocument: async (documentId: string) => {
-    const response = await axios.post('https://karararama.yargitay.gov.tr/getDokuman', {
-      id: documentId
-    });
-    return response.data;
+    if (!checkRateLimit('yargitay-doc', 20)) {
+      throw new Error('Yargıtay document API rate limit exceeded');
+    }
+
+    try {
+      const response = await axios.get(`https://karararama.yargitay.gov.tr/api/dokuman/${documentId}`, {
+        headers: {
+          'User-Agent': 'YargiSys-Search/1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Yargıtay Document API Error:', error.message);
+      throw error;
+    }
   }
 };
 
+// 🏛️ Danıştay Real API
 export const DanistayAPI = {
   search: async (query: string, filters?: any) => {
-    const response = await axios.post('https://karararama.danistay.gov.tr/aramadetaylist', {
-      arananKelime: query,
-      ...filters
-    });
-    return response.data;
+    if (!checkRateLimit('danistay', 20)) {
+      throw new Error('Danıştay API rate limit exceeded');
+    }
+
+    try {
+      const searchParams = {
+        aramaTerimi: query,
+        baslangicTarihi: filters?.startDate || '',
+        bitisTarihi: filters?.endDate || '',
+        daire: filters?.department || '',
+        sayfa: filters?.page || 1,
+        kayitSayisi: filters?.limit || 20
+      };
+
+      const response = await axios.post('https://www.danistay.gov.tr/api/kararlar/arama', searchParams, {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'YargiSys-Search/1.0'
+        },
+        timeout: 30000
+      });
+
+      return {
+        success: true,
+        data: response.data?.kararlar || [],
+        totalCount: response.data?.toplamSayisi || 0,
+        executionTime: Date.now()
+      };
+    } catch (error: any) {
+      console.error('Danıştay API Error:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
   },
   
   getDocument: async (documentId: string) => {
-    const response = await axios.post('https://karararama.danistay.gov.tr/getDokuman', {
-      id: documentId
-    });
-    return response.data;
+    if (!checkRateLimit('danistay-doc', 15)) {
+      throw new Error('Danıştay document API rate limit exceeded');
+    }
+
+    try {
+      const response = await axios.get(`https://www.danistay.gov.tr/api/kararlar/${documentId}`, {
+        timeout: 15000
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Danıştay Document API Error:', error.message);
+      throw error;
+    }
   }
 };
 
+// 🏛️ Emsal (UYAP) Real API
 export const EmsalAPI = {
   search: async (query: string, filters?: any) => {
-    const response = await axios.post('https://emsal.uyap.gov.tr/aramadetaylist', {
-      arananKelime: query,
-      ...filters
-    });
-    return response.data;
+    if (!checkRateLimit('emsal', 60)) {
+      throw new Error('Emsal API rate limit exceeded');
+    }
+
+    try {
+      const searchParams = {
+        q: query,
+        start_date: filters?.startDate,
+        end_date: filters?.endDate,
+        court: filters?.department,
+        page: filters?.page || 1,
+        size: filters?.limit || 20
+      };
+
+      const response = await axios.get('https://emsal.uyap.gov.tr/api/v1/search', {
+        params: searchParams,
+        headers: {
+          'User-Agent': 'YargiSys-Search/1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 25000
+      });
+
+      return {
+        success: true,
+        data: response.data?.hits || [],
+        totalCount: response.data?.total || 0,
+        executionTime: response.data?.took || 0
+      };
+    } catch (error: any) {
+      console.error('Emsal API Error:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
   },
   
   getDocument: async (documentId: string) => {
-    const response = await axios.post('https://emsal.uyap.gov.tr/getDokuman', {
-      id: documentId
-    });
-    return response.data;
+    if (!checkRateLimit('emsal-doc', 40)) {
+      throw new Error('Emsal document API rate limit exceeded');
+    }
+
+    try {
+      const response = await axios.get(`https://emsal.uyap.gov.tr/api/v1/document/${documentId}`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Emsal Document API Error:', error.message);
+      throw error;
+    }
+  }
+};
+
+// 🏛️ Brave Search API (KVKK için)
+export const BraveSearchAPI = {
+  search: async (query: string, filters?: any) => {
+    if (!checkRateLimit('brave-search', 100)) {
+      throw new Error('Brave Search API rate limit exceeded');
+    }
+
+    try {
+      const searchQuery = `site:kvkk.gov.tr ${query}`;
+      
+      const response = await axios.get('https://api.search.brave.com/res/v1/web/search', {
+        params: {
+          q: searchQuery,
+          count: filters?.limit || 20,
+          offset: ((filters?.page || 1) - 1) * (filters?.limit || 20),
+          country: 'TR',
+          search_lang: 'tr',
+          ui_lang: 'tr'
+        },
+        headers: {
+          'X-Subscription-Token': process.env.BRAVE_API_KEY,
+          'Accept': 'application/json'
+        },
+        timeout: 20000
+      });
+
+      return {
+        success: true,
+        data: response.data?.web?.results || [],
+        totalCount: response.data?.web?.total_count || 0,
+        executionTime: Date.now()
+      };
+    } catch (error: any) {
+      console.error('Brave Search API Error:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  }
+};
+
+// 🏛️ Tavily Search API (BDDK için)
+export const TavilySearchAPI = {
+  search: async (query: string, filters?: any) => {
+    if (!checkRateLimit('tavily-search', 100)) {
+      throw new Error('Tavily Search API rate limit exceeded');
+    }
+
+    try {
+      const searchQuery = `site:bddk.org.tr ${query}`;
+      
+      const response = await axios.post('https://api.tavily.com/search', {
+        api_key: process.env.TAVILY_API_KEY,
+        query: searchQuery,
+        search_depth: 'advanced',
+        include_answer: false,
+        include_images: false,
+        include_raw_content: true,
+        max_results: filters?.limit || 20,
+        include_domains: ['bddk.org.tr']
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 25000
+      });
+
+      return {
+        success: true,
+        data: response.data?.results || [],
+        totalCount: response.data?.results?.length || 0,
+        executionTime: Date.now()
+      };
+    } catch (error: any) {
+      console.error('Tavily Search API Error:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
   }
 };
 

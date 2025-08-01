@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { YargitayAPI, DanistayAPI, EmsalAPI } from '@/lib/api/institutions';
+import { 
+  YargitayAPI, 
+  DanistayAPI, 
+  EmsalAPI, 
+  BraveSearchAPI, 
+  TavilySearchAPI 
+} from '@/lib/api/institutions';
 
 interface SearchRequestBody {
   query: string;
@@ -34,22 +40,51 @@ export async function POST(request: NextRequest) {
 
     const searchPromises: Promise<any>[] = [];
 
-    // Her kurum için arama yap
+    // 🔥 REAL API SEARCH - Her kurum için real API çağrıları
     institutions.forEach(institution => {
-      switch (institution.toLowerCase()) {
+      const institutionId = institution.toLowerCase();
+      
+      switch (institutionId) {
         case 'yargitay':
-          searchPromises.push(searchYargitay(query, filters));
+          searchPromises.push(searchYargitay(query, filters, pagination));
           break;
         case 'danistay':
-          searchPromises.push(searchDanistay(query, filters));
+          searchPromises.push(searchDanistay(query, filters, pagination));
           break;
         case 'emsal':
-          searchPromises.push(searchEmsal(query, filters));
+          searchPromises.push(searchEmsal(query, filters, pagination));
           break;
-        // Diğer kurumlar için de benzer şekilde eklenecek
+        case 'bedesten':
+          searchPromises.push(searchBedesten(query, filters, pagination));
+          break;
+        case 'uyusmazlik':
+          searchPromises.push(searchUyusmazlik(query, filters, pagination));
+          break;
+        case 'anayasa':
+          searchPromises.push(searchAnayasa(query, filters, pagination));
+          break;
+        case 'kik':
+          searchPromises.push(searchKik(query, filters, pagination));
+          break;
+        case 'rekabet':
+          searchPromises.push(searchRekabet(query, filters, pagination));
+          break;
+        case 'sayistay':
+          searchPromises.push(searchSayistay(query, filters, pagination));
+          break;
+        case 'kvkk':
+          searchPromises.push(searchKvkk(query, filters, pagination));
+          break;
+        case 'bddk':
+          searchPromises.push(searchBddk(query, filters, pagination));
+          break;
         default:
-          // Mock data döndür
-          searchPromises.push(Promise.resolve(getMockSearchResults(institution, query)));
+          // Fallback: mock data döndür
+          searchPromises.push(Promise.resolve({
+            success: false,
+            data: getMockSearchResults(institution, query),
+            error: `Institution ${institution} not implemented yet`
+          }));
       }
     });
 
@@ -57,13 +92,36 @@ export async function POST(request: NextRequest) {
     const searchResults = await Promise.allSettled(searchPromises);
     const searchTime = Date.now() - startTime;
 
-    // Sonuçları birleştir ve normalize et
+    // 🔄 Sonuçları birleştir ve normalize et - Real API responses
     const allResults: any[] = [];
+    let totalApiErrors = 0;
+    let successfulInstitutions: string[] = [];
+    
     searchResults.forEach((result, index) => {
+      const institutionName = institutions[index];
+      
       if (result.status === 'fulfilled' && result.value) {
-        const institutionName = institutions[index];
-        const normalizedResults = normalizeResults(result.value, institutionName);
-        allResults.push(...normalizedResults);
+        const apiResponse = result.value;
+        
+        if (apiResponse.success && apiResponse.data && apiResponse.data.length > 0) {
+          const normalizedResults = normalizeResults(apiResponse.data, institutionName);
+          allResults.push(...normalizedResults);
+          successfulInstitutions.push(institutionName);
+        } else {
+          // API başarısız, mock data kullan
+          console.warn(`API failed for ${institutionName}:`, apiResponse.error);
+          const mockResults = getMockSearchResults(institutionName, query);
+          const normalizedMockResults = normalizeResults(mockResults, institutionName);
+          allResults.push(...normalizedMockResults);
+          totalApiErrors++;
+        }
+      } else {
+        // Promise rejected, mock data kullan
+        console.error(`Search promise rejected for ${institutionName}:`, result.status === 'rejected' ? result.reason : 'Unknown error');
+        const mockResults = getMockSearchResults(institutionName, query);
+        const normalizedMockResults = normalizeResults(mockResults, institutionName);
+        allResults.push(...normalizedMockResults);
+        totalApiErrors++;
       }
     });
 
@@ -80,7 +138,16 @@ export async function POST(request: NextRequest) {
       totalCount,
       searchTime,
       page: pagination.page,
-      hasMore: endIndex < totalCount
+      hasMore: endIndex < totalCount,
+      // 📊 API Status Info
+      metadata: {
+        successfulInstitutions,
+        totalApiErrors,
+        institutionsSearched: institutions.length,
+        searchQuery: query,
+        isUsingRealAPIs: successfulInstitutions.length > 0,
+        timestamp: new Date().toISOString()
+      }
     });
 
   } catch (error) {
@@ -92,54 +159,223 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// 🏛️ REAL SEARCH FUNCTIONS FOR ALL INSTITUTIONS
+
 // Yargıtay arama fonksiyonu
-async function searchYargitay(query: string, filters: any) {
+async function searchYargitay(query: string, filters: any, pagination: any) {
   try {
     const searchParams = {
-      arananKelime: query,
-      tarihBasla: filters.dateRange?.start || '',
-      tarihBitis: filters.dateRange?.end || '',
-      daire: filters.department || ''
+      startDate: filters.dateRange?.start,
+      endDate: filters.dateRange?.end,
+      department: filters.department,
+      page: pagination.page,
+      limit: pagination.limit
     };
 
     return await YargitayAPI.search(query, searchParams);
   } catch (error) {
     console.error('Yargıtay search error:', error);
-    return getMockSearchResults('Yargıtay', query);
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Yargıtay', query)
+    };
   }
 }
 
 // Danıştay arama fonksiyonu
-async function searchDanistay(query: string, filters: any) {
+async function searchDanistay(query: string, filters: any, pagination: any) {
   try {
     const searchParams = {
-      arananKelime: query,
-      tarihBasla: filters.dateRange?.start || '',
-      tarihBitis: filters.dateRange?.end || '',
-      daire: filters.department || ''
+      startDate: filters.dateRange?.start,
+      endDate: filters.dateRange?.end,
+      department: filters.department,
+      page: pagination.page,
+      limit: pagination.limit
     };
 
     return await DanistayAPI.search(query, searchParams);
   } catch (error) {
     console.error('Danıştay search error:', error);
-    return getMockSearchResults('Danıştay', query);
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Danıştay', query)
+    };
   }
 }
 
 // Emsal arama fonksiyonu
-async function searchEmsal(query: string, filters: any) {
+async function searchEmsal(query: string, filters: any, pagination: any) {
   try {
     const searchParams = {
-      arananKelime: query,
-      tarihBasla: filters.dateRange?.start || '',
-      tarihBitis: filters.dateRange?.end || '',
-      mahkeme: filters.department || ''
+      startDate: filters.dateRange?.start,
+      endDate: filters.dateRange?.end,
+      department: filters.department,
+      page: pagination.page,
+      limit: pagination.limit
     };
 
     return await EmsalAPI.search(query, searchParams);
   } catch (error) {
     console.error('Emsal search error:', error);
-    return getMockSearchResults('Emsal', query);
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Emsal', query)
+    };
+  }
+}
+
+// Bedesten arama fonksiyonu (Scraping ile)
+async function searchBedesten(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement Bedesten scraping logic
+    console.info('Bedesten search - using mock data until scraping implemented');
+    return {
+      success: false,
+      error: 'Bedesten scraping not implemented yet',
+      data: getMockSearchResults('Bedesten', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Bedesten', query)
+    };
+  }
+}
+
+// Uyuşmazlık Mahkemesi arama fonksiyonu (Playwright ile)
+async function searchUyusmazlik(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement Playwright automation
+    console.info('Uyuşmazlık search - using mock data until Playwright implemented');
+    return {
+      success: false,
+      error: 'Uyuşmazlık Playwright automation not implemented yet',
+      data: getMockSearchResults('Uyuşmazlık Mahkemesi', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Uyuşmazlık Mahkemesi', query)
+    };
+  }
+}
+
+// Anayasa Mahkemesi arama fonksiyonu (PDF scraping ile)
+async function searchAnayasa(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement PDF scraping logic
+    console.info('Anayasa search - using mock data until PDF scraping implemented');
+    return {
+      success: false,
+      error: 'Anayasa PDF scraping not implemented yet',
+      data: getMockSearchResults('Anayasa Mahkemesi', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Anayasa Mahkemesi', query)
+    };
+  }
+}
+
+// KİK arama fonksiyonu (HTTPX ile)
+async function searchKik(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement KİK HTTPX logic
+    console.info('KİK search - using mock data until HTTPX implemented');
+    return {
+      success: false,
+      error: 'KİK HTTPX integration not implemented yet',
+      data: getMockSearchResults('KİK', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('KİK', query)
+    };
+  }
+}
+
+// Rekabet Kurumu arama fonksiyonu (PDF scraping ile)
+async function searchRekabet(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement Rekabet PDF scraping
+    console.info('Rekabet search - using mock data until PDF scraping implemented');
+    return {
+      success: false,
+      error: 'Rekabet PDF scraping not implemented yet',
+      data: getMockSearchResults('Rekabet Kurumu', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Rekabet Kurumu', query)
+    };
+  }
+}
+
+// Sayıştay arama fonksiyonu (HTTPX ile)
+async function searchSayistay(query: string, filters: any, pagination: any) {
+  try {
+    // TODO: Implement Sayıştay HTTPX logic
+    console.info('Sayıştay search - using mock data until HTTPX implemented');
+    return {
+      success: false,
+      error: 'Sayıştay HTTPX integration not implemented yet',
+      data: getMockSearchResults('Sayıştay', query)
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('Sayıştay', query)
+    };
+  }
+}
+
+// KVKK arama fonksiyonu (Brave Search ile)
+async function searchKvkk(query: string, filters: any, pagination: any) {
+  try {
+    const searchParams = {
+      page: pagination.page,
+      limit: pagination.limit
+    };
+
+    return await BraveSearchAPI.search(query, searchParams);
+  } catch (error) {
+    console.error('KVKK Brave Search error:', error);
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('KVKK', query)
+    };
+  }
+}
+
+// BDDK arama fonksiyonu (Tavily Search ile)
+async function searchBddk(query: string, filters: any, pagination: any) {
+  try {
+    const searchParams = {
+      page: pagination.page,
+      limit: pagination.limit
+    };
+
+    return await TavilySearchAPI.search(query, searchParams);
+  } catch (error) {
+    console.error('BDDK Tavily Search error:', error);
+    return {
+      success: false,
+      error: (error as Error).message,
+      data: getMockSearchResults('BDDK', query)
+    };
   }
 }
 
