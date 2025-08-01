@@ -79,8 +79,11 @@ export function useSearch(options: UseSearchOptions = {}) {
               results_count: response.totalCount,
               search_time_ms: response.searchTime
             });
-        } catch (historyError) {
-          console.warn('Failed to save search history:', historyError);
+        } catch (historyError: any) {
+          // Suppress 401 auth errors for non-authenticated users (normal behavior)
+          if (historyError?.status !== 401) {
+            console.warn('Failed to save search history:', historyError);
+          }
         }
       }
 
