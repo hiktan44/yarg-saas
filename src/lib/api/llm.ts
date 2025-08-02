@@ -97,7 +97,12 @@ export async function callAnthropic(
     const systemMessage = messages.find(m => m.role === 'system')?.content || '';
     const conversationMessages = messages.filter(m => m.role !== 'system');
 
-    const message = await (anthropic as any).messages.create({
+    // Anthropic için en az bir user message gerekli
+    if (conversationMessages.length === 0) {
+      conversationMessages.push({ role: 'user', content: 'Please provide an analysis.' });
+    }
+
+    const message = await anthropic.messages.create({
       model,
       max_tokens: 2000,
       system: systemMessage,
