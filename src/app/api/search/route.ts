@@ -103,13 +103,21 @@ export async function POST(request: NextRequest) {
       if (result.status === 'fulfilled' && result.value) {
         const apiResponse = result.value;
         
+        console.log(`🔍 API Response for ${institutionName}:`, {
+          success: apiResponse.success,
+          dataLength: apiResponse.data?.length,
+          hasData: !!apiResponse.data,
+          isRealApi: apiResponse.isRealApi
+        });
+        
         if (apiResponse.success && apiResponse.data && apiResponse.data.length > 0) {
           const normalizedResults = normalizeResults(apiResponse.data, institutionName);
           allResults.push(...normalizedResults);
           successfulInstitutions.push(institutionName);
+          console.log(`✅ Success: ${institutionName} added to successful institutions`);
         } else {
           // API başarısız, mock data kullan
-          console.warn(`API failed for ${institutionName}:`, apiResponse.error);
+          console.warn(`❌ API failed for ${institutionName}:`, apiResponse.error || 'No data or failed');
           const mockResults = getMockSearchResults(institutionName, query);
           const normalizedMockResults = normalizeResults(mockResults, institutionName);
           allResults.push(...normalizedMockResults);
