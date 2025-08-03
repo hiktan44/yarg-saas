@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       
       switch (institutionId) {
         case 'yargitay':
-          searchPromises.push(searchYargitay(query, filters, pagination));
+          searchPromises.push(YargitayAPI.search(query, { ...filters, ...pagination }));
           break;
         case 'danistay':
           searchPromises.push(searchDanistay(query, filters, pagination));
