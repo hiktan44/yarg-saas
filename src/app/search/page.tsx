@@ -263,6 +263,7 @@ export default function SearchPage() {
                   totalResults={totalResults}
                   searchTime={searchTime}
                   currentPage={currentPage}
+                  onDocumentSelect={(doc) => console.log('Document selected:', doc)}
                 />
               )}
             </div>
